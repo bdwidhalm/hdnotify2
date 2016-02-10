@@ -1,8 +1,8 @@
 'use strict';
 
 // Notices controller
-angular.module('notices').controller('NoticesController', ['$scope', '$stateParams', '$location', 'Authentication', 'Notices',
-	function($scope, $stateParams, $location, Authentication, Notices, Templates) {
+angular.module('notices').controller('NoticesController', ['$scope', '$confirm', '$stateParams', '$location', 'Authentication', 'Notices',
+	function($scope, $confirm, $stateParams, $location, Authentication, Notices, Templates) {
 		$scope.authentication = Authentication;
 
 
@@ -25,6 +25,10 @@ angular.module('notices').controller('NoticesController', ['$scope', '$statePara
 				email_dlist: this.noticeForm.email_dlist
 
 			});
+			// display confirmation dialog to ensure they really want to submit the notice
+			$confirm({text: 'Are you sure you want to send this notice?'}).then(function() {
+			
+			
 
 			// Redirect after save
 			notice.$save(function(response) {
@@ -36,7 +40,10 @@ angular.module('notices').controller('NoticesController', ['$scope', '$statePara
 			}, function(errorResponse) {
 				$scope.error = errorResponse.data.message;
 			});
-		};
+		});
+
+			};
+			
 
 		// Remove existing Notice
 		$scope.remove = function(notice) {

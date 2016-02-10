@@ -4,7 +4,7 @@
 var ApplicationConfiguration = (function() {
 	// Init module configuration options
 	var applicationModuleName = 'hdnotify';
-	var applicationModuleVendorDependencies = ['ngResource', 'ngCookies',  'ngAnimate',  'ngTouch',  'ngSanitize',  'ui.router', 'ui.bootstrap', 'ui.utils', 'ui.bootstrap.datetimepicker', 'simplePagination'];
+	var applicationModuleVendorDependencies = ['ngResource', 'ngCookies',  'ngAnimate',  'ngTouch',  'ngSanitize',  'ui.router', 'ui.bootstrap', 'ui.utils', 'ui.bootstrap.datetimepicker', 'simplePagination', 'angular-confirm'];
 
 	// Add a new vertical module
 	var registerModule = function(moduleName, dependencies) {
@@ -81,23 +81,22 @@ angular.module('core').controller('DashboardController', ['$scope', '$stateParam
 		// This provides Authentication context.
 		$scope.authentication = Authentication;
 
-		// Pagination stuff - defaults to 5 items per page
-		$scope.pagination = Pagination.getNew();
-
-
-		$scope.notices = Notices.query();
-
-		// calculate the number of pages to display based on the total amount of data from the db for notices
-		$scope.pagination.numPages = Math.ceil($scope.notices.length/$scope.pagination.perPage);
-		// $scope.pagination.numPages = 3;
-
-
-				// Find a list of Notices
+		// Find a list of Notices
 		$scope.find = function() {
-			$scope.notices = Notices.query();
+			$scope.notices = Notices.query(function (result){
+			// Pagination stuff - defaults to 5 items per page
+			$scope.pagination = Pagination.getNew(10);
+			var totalNotices = result.length;
+			// calculate the number of pages to display based on the total amount of data from the db for notices
+			$scope.pagination.numPages = Math.ceil(totalNotices / $scope.pagination.perPage);
 
-		};
 
+			});
+
+			
+
+			};
+		
 
 	}
 ]);
@@ -369,8 +368,8 @@ angular.module('notices').config(['$stateProvider',
 'use strict';
 
 // Notices controller
-angular.module('notices').controller('NoticesController', ['$scope', '$stateParams', '$location', 'Authentication', 'Notices',
-	function($scope, $stateParams, $location, Authentication, Notices, Templates) {
+angular.module('notices').controller('NoticesController', ['$scope', '$confirm', '$stateParams', '$location', 'Authentication', 'Notices',
+	function($scope, $confirm, $stateParams, $location, Authentication, Notices, Templates) {
 		$scope.authentication = Authentication;
 
 
@@ -393,6 +392,10 @@ angular.module('notices').controller('NoticesController', ['$scope', '$statePara
 				email_dlist: this.noticeForm.email_dlist
 
 			});
+			// display confirmation dialog to ensure they really want to submit the notice
+			$confirm({text: 'Are you sure you want to send this notice?'}).then(function() {
+			
+			
 
 			// Redirect after save
 			notice.$save(function(response) {
@@ -404,7 +407,10 @@ angular.module('notices').controller('NoticesController', ['$scope', '$statePara
 			}, function(errorResponse) {
 				$scope.error = errorResponse.data.message;
 			});
-		};
+		});
+
+			};
+			
 
 		// Remove existing Notice
 		$scope.remove = function(notice) {
